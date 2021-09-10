@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 
 # Ignore Resources
+resources/*
 
 # C extensions
 *.so

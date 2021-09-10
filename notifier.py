@@ -4,7 +4,7 @@ from os import error
 from schedule_handler import ScheduleHandler
 from time_clock import TimeClock
 from time_clock import valid_time
-from time_clock import now
+from time_clock import _now
 from threading import Thread
 from time import sleep
 import argparse
@@ -39,7 +39,7 @@ class Notifier:
             return
         if sender == "leave":
             self._waiting_loop("Another day ends!",
-                "Another days get to its end. Time to head out and get some rest, mate. See you next time. :)",
+                "Another day get to its end. Time to head out and get some rest, mate. See you next time. :)",
                 self._leave_func)
             return
         return
@@ -48,7 +48,7 @@ class Notifier:
         self.notify(alarm_type)
         sender.set_next(alarm_type)
         if self._verbose:
-            now_ = now()
+            now_ = _now()
             lunch = sh.get_alarm_time(0)
             ret = sh.get_alarm_time(1)
             leave = sh.get_alarm_time(2)
@@ -86,14 +86,14 @@ def arg_parse():
 
 if __name__ == "__main__":
     args = arg_parse()
-    now = now()
-    starts = now if args.started is None else args.started
+    _now = _now()
+    starts = _now if args.started is None else args.started
     lunch = TimeClock(13) if args.lunch is None else args.lunch
     period = TimeClock(1) if args.lunchperiod is None else args.lunchperiod
     working_hours = TimeClock(8, 48) if args.workinghours is None else args.workinghours
 
     subprocess.run(["osascript", "-e", "display alert \"Welcome to work!\" message \"I've started running exactly at " +
-     str(now) + ". Worry not! I'll make sure to take care of your schedule.\""])
+     str(_now) + ". Worry not! I'll make sure to take care of your schedule.\""])
         
     sh = ScheduleHandler(starts)
     sh.forecast(working_hours, period, lunch)
