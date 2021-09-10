@@ -1,6 +1,6 @@
 from time_clock import TimeClock
 from alarm import Alarm
-import clock_utils as clock
+import time_clock as clock
 
 class ScheduleHandler:
     def __init__(self, entry):
@@ -21,24 +21,40 @@ class ScheduleHandler:
         self._leave_alarm = Alarm(self._entry.add(working_time.add(lunch_time)))
         self._set = True
     
+    def get_alarm_time(self, param: int) -> TimeClock:
+        if param == 0:
+            return self._lunch_alarm.get_alarm_time()
+        if param == 1:
+            return self._return_alarm.get_alarm_time()
+        return self._leave_alarm.get_alarm_time()
+    
     def run(self):
         if not self._set:
             raise "forecast not set"
-        self._lunch_alarm.set_up_and_wait()
-        self._notify_all("lunch break")
-        self._return_alarm.set_up_and_wait()
-        self._notify_all("lunch return")
-        self._leave_alarm.set_up_and_wait()
-        self._notify_all("leave")
+
+        now = clock.now()
+        if not now.in_the_future_of(self._lunch_alarm.get_alarm_time()):
+            self._lunch_alarm.set_up_and_wait()
+            self._notify_all("lunch break")
+
+        now = clock.now()
+        if not now.in_the_future_of(self._return_alarm.get_alarm_time()):
+            self._return_alarm.set_up_and_wait()
+            self._notify_all("lunch return")
+        
+        now = clock.now()
+        if not now.in_the_future_of(self._leave_alarm.get_alarm_time()):
+            self._leave_alarm.set_up_and_wait()
+            self._notify_all("leave")
     
     def set_next(self, alarm_type):
         now = clock.now()
         if alarm_type == "lunch break":
             worked = now.subtract(self._entry)
             self._remaning = self._working_time.subtract(worked)
-            self._return_alarm = now.add(TimeClock(1))
+            self._return_alarm = Alarm(now.add(TimeClock(1)))
         elif alarm_type == "lunch return":
-            self._leave_alarm = now.add(self._remaning)        
+            self._leave_alarm = Alarm(now.add(self._remaning))
     
     def _notify_all(self, alarm_type):
         for subscriber in self._subscript:

@@ -1,3 +1,6 @@
+from datetime import datetime as dt
+import time
+
 class TimeClock:
     def __init__(self, hour, minute=0, second=0):
         if hour < 0 or hour > 23:
@@ -36,19 +39,16 @@ class TimeClock:
         minute = (self._min - other._min)
         second = (self._sec - other._sec)
 
-        if hour < 0:
-            second = 60 - second
-            minute = 60 - second
-            hour += 24
+        if second < 0:
+            minute -= 1
+            second += 60
         
         if minute < 0:
-            second = 60 - second
+            hour -= 1
             minute += 60
         
-        if second < 0:
-            second += 60
-            minute += 59
-            hour += 23
+        if hour < 0:
+            hour += 24
 
         return TimeClock(hour%24, minute%60, second%60)
     
@@ -66,3 +66,41 @@ class TimeClock:
             hour += 1
         
         return TimeClock(hour%24, minute, second)
+    
+    def in_seconds(self):
+        return from_hours_to_secs(self._hour) + from_min_to_secs(self._min) + self._sec
+
+    def in_the_future_of(self, other):
+        if self._hour > other._hour:
+            return True
+        elif self._hour < other._hour:
+            return False
+        if self._min > other._min:
+            return True
+        elif self._min < other._min:
+            return False
+        if self._sec > other._sec:
+            return True
+        return False
+
+
+def get_current_time():
+    now = dt.now()
+    return int(now.strftime("%H")), int(now.strftime("%M")), int(now.strftime("%S"))
+
+def from_hours_to_secs(hours):
+    return hours*3600
+
+def from_min_to_secs(min):
+    return min*60
+
+def now():
+    return TimeClock(*get_current_time())
+
+def valid_time(string_time: str) -> TimeClock:
+    try:
+        res = time.strptime(string_time, "%H:%M")
+        got = TimeClock(res.tm_hour, res.tm_min, res.tm_sec)
+    except ValueError:
+        return now()
+    return got

@@ -1,6 +1,6 @@
 from time import sleep
 from time_clock import TimeClock
-import clock_utils as clock
+import time_clock as clock
 
 class AlarmTeller:
     def warn(self):
@@ -28,46 +28,12 @@ class Alarm:
         self._off = True
 
     def set_up_and_wait(self):
-        done = False
-        self._off = False
-        while not done and not self._off:
-            curr_hour, curr_min, curr_sec = clock.get_current_time()
-            if curr_hour != self._time._hour:
-                self._sleep_until_alarm_hour(curr_hour)
-                continue
-            if curr_min != self._time._minutes:
-                self._sleep_until_alarm_minute(curr_min)
-                continue
-            if curr_sec != self._time._seconds:
-                self._sleep_until_alarm_second(curr_sec)
-                continue
-            done = True
+        self._sleep_until_alarm()
         self._alarm.warn()
     
-    def _sleep_until_alarm_hour(self, curr_hour):
-        to_be_elapsed = (self._time._hours-curr_hour)
-        if to_be_elapsed < 0:
-            to_be_elapsed = 23-to_be_elapsed
-        sleep_for_h = clock.from_hours_to_secs(to_be_elapsed)
-        sleep(sleep_for_h)
-    
-    def _sleep_until_alarm_minute(self, curr_min):
-        to_be_elapsed = (self._time._minutes - curr_min)
-        if to_be_elapsed < 0:
-            sleep(clock.from_hours_to_secs(23)+clock.from_min_to_secs((-to_be_elapsed)-1))
-            return
-            
-        if to_be_elapsed > 1:
-            to_be_elapsed -= 1
-            sleep_for_m = clock.from_min_to_secs(to_be_elapsed)
-            sleep(sleep_for_m)
-        
-    def _sleep_until_alarm_second(self, curr_sec):
-        to_be_elapsed = (self._time._seconds - curr_sec)
-        if to_be_elapsed < 0:
-            sleep(clock.from_min_to_secs(59)+59)
-            return
-
-        if to_be_elapsed > 1:
-            sleep_for_s = to_be_elapsed-1
-            sleep(sleep_for_s)
+    def _sleep_until_alarm(self):
+        now = clock.now()
+        to_be_elapsed = self._time.subtract(now)
+        sleeping_for = to_be_elapsed.in_seconds()
+        print("I'll be sleeping for", sleeping_for, "seconds. I'll be waking up in", to_be_elapsed, ", exactly at", now.add(to_be_elapsed), ".")
+        sleep(sleeping_for)
